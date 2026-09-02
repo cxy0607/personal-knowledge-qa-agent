@@ -1,6 +1,6 @@
 """ReAct Agent：模型自主决策「用知识库检索还是联网搜索」（项目核心亮点）
 
-架构（面试必讲）：
+架构（设计说明）：
 - LangChain 1.x 的 create_agent 构建 ReAct 循环：思考(Thought) → 行动(Action: 调工具) → 观察(Observation) → 继续思考，直到能给出最终答案
 - 两个工具：
   1. search_knowledge_base —— 检索当前知识库（本地向量相似度检索，带来源引用）
@@ -9,7 +9,7 @@
   知识库内容过时 → 两个工具都用，交叉验证
 - 工具调用链全程记录（agent_trace），Streamlit 界面可视化展示思考过程
 
-RAG vs Agent（面试高频对比）：
+RAG vs Agent（技术对比）：
 - RAG 是固定流水线（检索→拼上下文→生成），路径确定、可控、成本低
 - Agent 是模型自主决策（选哪个工具、用几次、结果怎么用），灵活但成本高、可能失控
 - 什么时候用 Agent：任务需要多步推理/多工具协作时；简单问答用 RAG 更划算
@@ -32,7 +32,7 @@ WEB_SEARCH_RESULTS = 3
 # 搜索请求超时（秒）
 SEARCH_TIMEOUT = 15
 
-# 搜索引擎：Bing（国内可达；DuckDuckGo 被墙——面试可讲这个选型调整过程）
+# 搜索引擎：Bing（国内可达；DuckDuckGo 被墙——值得记录这个选型调整过程）
 BING_SEARCH_URL = "https://cn.bing.com/search"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 
@@ -50,7 +50,7 @@ def _chat_model() -> ChatOpenAI:
 def _make_kb_tool(kb_id: int):
     """知识库检索工具（闭包捕获当前选中的知识库 id）
 
-    为什么工具要动态创建（面试可讲）：
+    为什么工具要动态创建（设计说明）：
     用户在界面切换知识库后，工具的目标随之改变——用工厂函数每次生成
     绑定当前 kb_id 的工具实例，简单可靠
     """
@@ -78,7 +78,7 @@ def _make_kb_tool(kb_id: int):
 def _bing_search(query: str) -> list[dict]:
     """Bing 搜索抓取：requests + BeautifulSoup 解析结果页
 
-    为什么不用 DuckDuckGo 的现成库（面试可讲）：
+    为什么不用 DuckDuckGo 的现成库（设计说明）：
     初版用 duckduckgo-search，但国内网络不可达（超时/TLS 失败），
     换成 cn.bing.com 抓取——与项目网页导入同一套技术栈，零额外依赖
     """

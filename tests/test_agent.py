@@ -38,7 +38,7 @@ def test_kb_tool_returns_formatted_results(monkeypatch):
     fake_results = [
         {
             "content": "RAG 流程：加载→切分→向量化→检索→生成",
-            "source": "面试准备.md",
+            "source": "学习资料.md",
             "page": 0,
             "url": "",
             "score": 0.85,
@@ -47,7 +47,7 @@ def test_kb_tool_returns_formatted_results(monkeypatch):
     monkeypatch.setattr("app.agent.similarity_search", lambda kb_id, query: fake_results)
     tool = _make_kb_tool(kb_id=1)
     output = tool.invoke({"query": "RAG 流程"})
-    assert "面试准备.md" in output
+    assert "学习资料.md" in output
     assert "85%" in output  # 相似度格式化
     assert "RAG 流程" in output
 

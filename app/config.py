@@ -17,7 +17,7 @@ load_dotenv(BASE_DIR / ".env")
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
-# SQLite 元数据库：知识库/文档/会话记录（单用户本地工具，SQLite 零运维——面试讲选型）
+# SQLite 元数据库：知识库/文档/会话记录（单用户本地工具，SQLite 零运维——选型说明）
 DB_PATH = DATA_DIR / "app.db"
 
 # Chroma 向量库持久化目录（按知识库分 collection）

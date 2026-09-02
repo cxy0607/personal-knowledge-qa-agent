@@ -5,7 +5,7 @@
 **项目名称**：个人知识库 AI 问答工具（personal-knowledge-qa-agent）
 **项目类型**：本地 AI 工具（Streamlit 应用）
 **目标用户**：个人用户（导入资料构建私人知识库并智能问答）
-**用途**：面试展示项目（三个项目中最匹配 AI Agent 岗位）
+**用途**：实践项目（三个项目中最匹配 AI Agent 岗位）
 
 ---
 
@@ -26,12 +26,12 @@
 
 ## ⭐ 协作规则（极其重要）
 
-**本项目是用户的面试项目，用户是 AI 应用开发方向的求职者。**
+**本项目是用户的实践项目，用户是 AI 应用开发方向的开发者。**
 
-1. **任何技术决策，由 Claude 列出多个方案**，解释优缺点与面试价值，让用户做选择。
+1. **任何技术决策，由 Claude 列出多个方案**，解释优缺点与技术价值，让用户做选择。
 2. **代码注释和文档用中文**，关键设计点要在注释中写明"为什么这样设计"。
-3. **每完成一个功能/阶段，主动向用户解释**：做了什么、核心逻辑、面试官可能会怎么问。
-4. **遇到技术问题时，主动排查并提出解决方案**，修复后说明根因（踩坑过程是面试素材）。
+3. **每完成一个功能/阶段，主动向用户解释**：做了什么、核心逻辑、技术评审可能会怎么问。
+4. **遇到技术问题时，主动排查并提出解决方案**，修复后说明根因（踩坑过程值得记录）。
 5. **保持代码分层清晰**：main.py（界面编排）/ app 包（config/db/embeddings/loader/splitter/vectorstore/agent），业务逻辑不放界面层。
 6. **改动核心逻辑时，同步更新测试**，保证 `pytest` 全绿。
 
@@ -51,8 +51,7 @@ project3/
 │   ├── vectorstore.py       # Chroma 封装（余弦空间）
 │   └── agent.py             # ReAct Agent + 两工具 + trace
 ├── tests/                   # pytest（16 用例，全 mock）
-├── requirements.txt / .env.example / README.md / 面试问答要点.md
-└── .claude/                 # 质量体系
+├── requirements.txt / .env.example / README.md / 技术问答要点.md
 ```
 
 ## 开发命令参考
@@ -62,14 +61,12 @@ project3/
 | `.venv/Scripts/streamlit run main.py` | 启动应用（8501） | project3/ |
 | `.venv/Scripts/python -m pytest tests/ -v` | 运行测试（约 3 秒） | project3/ |
 
-## 质量体系
-
 - **提交门禁**：`git commit` 自动触发，跑 pytest + Python 语法编译检查
 - **质量工程师 agent**：五维度代码质量审查
 - **测试专员 agent**（tester1）：编写/运行 pytest 测试
 - **/git-save**：双重门禁保存流程
 
-## 踩坑记录（面试素材）
+## 踩坑记录
 
 | 坑 | 根因与解决 |
 |----|-----------|

@@ -1,6 +1,6 @@
 """文档加载：PDF / Markdown / 网页 → LangChain Document 列表
 
-职责边界（面试可讲）：loader 只负责"把各种来源读成纯文本 + 元数据"，
+职责边界（设计说明）：loader 只负责"把各种来源读成纯文本 + 元数据"，
 切分（chunking）是下一步的独立环节——加载与切分解耦，新增文档类型只改这里
 """
 import re
