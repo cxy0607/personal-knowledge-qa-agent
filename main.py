@@ -216,6 +216,11 @@ current_kb = next(kb for kb in kbs if kb["name"] == selected_kb_name)
 tab_docs, tab_chat = st.tabs(["📚 文档管理", "💬 智能问答"])
 
 # ==================== 文档管理页 ====================
+def format_time(ts: str) -> str:
+    """UTC ISO 时间 → 本地时区显示（数据库统一 UTC 存储，展示层转本地）"""
+    return datetime.fromisoformat(ts).astimezone().strftime("%Y-%m-%d %H:%M")
+
+
 with tab_docs:
     st.subheader(f"「{current_kb['name']}」的文档（{current_kb['doc_count']} 个）")
 
@@ -224,34 +229,52 @@ with tab_docs:
         st.markdown("**上传文件（PDF / Markdown）**")
         uploaded = st.file_uploader("选择文件", type=["pdf", "md"], label_visibility="collapsed")
         if uploaded:
-            suffix = "md" if uploaded.name.lower().endswith(".md") else "pdf"
-            source_type = "markdown" if suffix == "md" else "pdf"
-            # 保存到上传目录（uuid 前缀防重名覆盖）
-            import uuid
+            bytes_data = uploaded.getvalue()
+            # 内容 MD5：防重复处理的两个场景——
+            # 1. Streamlit rerun 后 uploader 控件仍保留文件对象，无此检查会再次切分+向量化
+            # 2. 用户手动重复上传同一文件（内容相同），避免重复向量化浪费 embedding 费用
+            import hashlib
 
-            from app.config import UPLOAD_DIR
+            content_hash = hashlib.md5(bytes_data).hexdigest()
+            processed_key = f"uploaded_{current_kb['id']}_{content_hash}"
+            if st.session_state.get(processed_key):
+                st.info(f"「{uploaded.name}」已导入过，跳过重复处理")
+            else:
+                suffix = "md" if uploaded.name.lower().endswith(".md") else "pdf"
+                source_type = "markdown" if suffix == "md" else "pdf"
+                # 保存到上传目录（uuid 前缀防重名覆盖）
+                import uuid
 
-            save_path = UPLOAD_DIR / f"{uuid.uuid4().hex[:8]}_{uploaded.name}"
-            save_path.write_bytes(uploaded.getbuffer())
-            try:
-                chunk_count = process_upload(current_kb["id"], source_type, str(save_path))
-                add_document(current_kb["id"], uploaded.name, source_type, chunk_count)
-                st.success(f"导入成功：{uploaded.name}（{chunk_count} 个片段）")
-                st.rerun()
-            except Exception as e:
-                st.error(f"导入失败：{e}")
+                from app.config import UPLOAD_DIR
+
+                save_path = UPLOAD_DIR / f"{uuid.uuid4().hex[:8]}_{uploaded.name}"
+                save_path.write_bytes(bytes_data)
+                try:
+                    chunk_count = process_upload(current_kb["id"], source_type, str(save_path))
+                    add_document(current_kb["id"], uploaded.name, source_type, chunk_count)
+                    st.session_state[processed_key] = True  # 标记已处理，rerun 后不再重复
+                    st.success(f"导入成功：{uploaded.name}（{chunk_count} 个片段）")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"导入失败：{e}")
 
     with col2:
         st.markdown("**导入网页（URL）**")
         url = st.text_input("网页地址", placeholder="https://example.com/article", label_visibility="collapsed")
         if st.button("导入网页", use_container_width=True) and url.strip():
-            try:
-                chunk_count = process_upload(current_kb["id"], "web", url.strip())
-                add_document(current_kb["id"], url.strip()[:80], "web", chunk_count, source_url=url.strip())
-                st.success(f"导入成功（{chunk_count} 个片段）")
-                st.rerun()
-            except Exception as e:
-                st.error(f"导入失败：{e}")
+            # 同 URL 防重复导入
+            url_key = f"web_{current_kb['id']}_{url.strip()}"
+            if st.session_state.get(url_key):
+                st.info("该网页已导入过，跳过重复处理")
+            else:
+                try:
+                    chunk_count = process_upload(current_kb["id"], "web", url.strip())
+                    add_document(current_kb["id"], url.strip()[:80], "web", chunk_count, source_url=url.strip())
+                    st.session_state[url_key] = True
+                    st.success(f"导入成功（{chunk_count} 个片段）")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"导入失败：{e}")
 
     st.divider()
     docs = list_documents(current_kb["id"])
@@ -263,7 +286,7 @@ with tab_docs:
             type_icon = {"pdf": "📄", "markdown": "📝", "web": "🌐"}[d["source_type"]]
             st.markdown(
                 f"{type_icon} **{d['filename']}** ｜ {d['chunk_count']} 片段 ｜ "
-                f"{d['created_at'][:16].replace('T', ' ')}"
+                f"{format_time(d['created_at'])}"
             )
         with c2:
             if st.button("删除", key=f"del_{d['id']}"):
